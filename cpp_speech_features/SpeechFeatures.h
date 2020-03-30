@@ -1,16 +1,21 @@
 #pragma once
-#include "Array.h"
+#include "Vector.h"
+#define MINIMAL_NUMBER 0.0000000000000002220446049250313
 namespace cpp_speech_features {
 	class SpeechFeatures
 	{
 	public:
-		static Matzix mfcc(Azzay signal, int samplerate = 16000, accuracy winlen = 0.025, accuracy winstep = 0.01, int numcep = 13, int nfilt = 26, int nfft = 512, int lowfreq = 0, int highfreq = -1, accuracy preemph = 0.97, int ceplifter = 22, bool appendEnergy = true, void * winfunc = nullptr);
+		static Matrixp mfcc(Vectorp signal, int samplerate = 16000, accuracy winlen = 0.025, accuracy winstep = 0.01, int numcep = 13, int nfilt = 26, int nfft = 512, int lowfreq = 0, int highfreq = -1, accuracy preemph = 0.97, int ceplifter = 22, bool appendEnergy = true, void * winfunc = nullptr);
 	private:
-		static Matzix fbank(int &energy, Azzay signal, int samplerate = 16000, accuracy winlen = 0.025, accuracy winstep = 0.01, int nfilt = 26, int nfft = 512, int lowfreq = 0, int highfreq = -1, accuracy preemph = 0.97, void * winfunc = nullptr);
-		static Azzay preemphasis(Azzay signal, accuracy coeff = 0.95);
-		static Matzix framesig(Azzay sig, accuracy frame_len, accuracy frame_step, void * winfunc = nullptr);
-		static Matzix tile(Azzay a, Azzay reps);
-		static Matzix array_extract(Azzay a, Matzix indices);
+		static Matrixp fbank(Vectorp * energy, Vectorp signal, int samplerate = 16000, accuracy winlen = 0.025, accuracy winstep = 0.01, int nfilt = 26, int nfft = 512, int lowfreq = 0, int highfreq = -1, accuracy preemph = 0.97, void * winfunc = nullptr);
+		static Vectorp matrix_rowsum(Matrixp matrixp);
+		static Vectorp preemphasis(Vectorp signal, accuracy coeff = 0.95);
+		static Matrixp framesig(Vectorp sig, accuracy frame_len, accuracy frame_step, void * winfunc = nullptr);
+		static Matrixp powspec(Matrixp framesj, int NFFT);
+		static Matrixp get_filterbanks(int nfilt = 26, int nfft = 512, int samplerate = 16000, int lowfreq = 0, int highfreq = -1);
+		static Matrixp magspec(Matrixp framesj, int NFFT);
+		static Matrixp tile(Vectorp a, Vectorp reps);
+		static Matrixp array_extract(Vectorp a, Matrixp indices);
 
 	};
 }

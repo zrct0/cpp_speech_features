@@ -152,14 +152,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Array.h" />
+    <ClInclude Include="DiscreteTransform.h" />
+    <ClInclude Include="Vector.h" />
     <ClInclude Include="AutoGC.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="SpeechFeatures.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Array.cpp" />
+    <ClCompile Include="DiscreteTransform.cpp" />
+    <ClCompile Include="Vector.cpp" />
     <ClCompile Include="AutoGC.cpp" />
     <ClCompile Include="cpp_speech_features.cpp" />
     <ClCompile Include="Matrix.cpp" />

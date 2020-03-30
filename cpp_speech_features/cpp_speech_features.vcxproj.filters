@@ -21,13 +21,16 @@
     <ClInclude Include="SpeechFeatures.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Array.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Matrix.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AutoGC.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DiscreteTransform.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,13 +44,16 @@
     <ClCompile Include="SpeechFeatures.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Array.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Matrix.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="AutoGC.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DiscreteTransform.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

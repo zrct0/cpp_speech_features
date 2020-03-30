@@ -20,7 +20,8 @@ namespace cpp_speech_features {
 	private:
 		static bool GC_Enable;
 		static int GC_pIndex;
-		static gctype *GC_pArray[gcmax];		
+		static gctype *GC_pArray[gcmax];
+		static void print(int beforeCount, int afterCount, int releaseCount);
 	};
 }
 

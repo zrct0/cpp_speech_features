@@ -1,17 +1,17 @@
 #pragma once
 #include "AutoGC.h"
-#include <memory>
-#define accuracy float
-#define arrtype std::shared_ptr<accuracy>
-#define create_shared_ptr(size, ...) std::shared_ptr<accuracy>(new accuracy[size] {__VA_ARGS__} , [](accuracy *p) {delete[] p; })
-#define Matzix std::shared_ptr<Matrix>
-#define create_matzix(...) std::shared_ptr<Matrix> (new Matrix( __VA_ARGS__ ))
-#define Azzay std::shared_ptr<Array>
-#define create_azzay(...) std::shared_ptr<Array> (new Array( __VA_ARGS__ ))
-#define create_azzay_by_array(size, ...) std::shared_ptr<Array> (new Array(size, create_shared_ptr(size, __VA_ARGS__ )))
+
+#define accuracy double
+#define arrtype accuracy *
+#define create_arrayp(size, ...) new accuracy[size]{__VA_ARGS__}
+#define Matrixp Matrix *
+#define create_matrixp(...) new Matrix( __VA_ARGS__ )
+#define Vectorp Vector *
+#define create_verctorp(...) new Vector( __VA_ARGS__ )
+#define create_verctorp_by_array(size, ...) new Vector(size, create_arrayp(size, __VA_ARGS__ ))
 #define display_accuracy 3
 namespace cpp_speech_features {
-	class Array;
+	class Vector;
 	class Matrix 
 	{
 	public:
@@ -25,14 +25,19 @@ namespace cpp_speech_features {
 		int getColumn();
 		int getRow();
 		arrtype getData();
-		Azzay getRow(int row);
-		Matzix multiply(Matzix b);
-		Matzix multiply(accuracy b);
-		Matzix subtract(Matzix b);
-		Matzix add(Matzix b);
-		Matzix concatenate(Matzix b);		
-		Matzix reshape(int col, int row);
-		Matzix T();		
+		Vectorp getRow(int row);
+		void setRow(int row, Vectorp r);
+		Matrixp multiply(Matrixp b);
+		Matrixp multiply(accuracy b);	
+		Matrixp subtract(Matrixp b);
+		Matrixp add(Matrixp b);
+		Matrixp square();
+		Matrixp logarithms();
+		Matrixp concatenate(Matrixp b);
+		Matrixp T();
+		Matrixp reshape(int row, int col);			
+		Matrixp map(accuracy(*func)(int, int, accuracy));
+		Matrixp mapRow(Vectorp(*func)(int, Vectorp r));
 		void print();
 	protected:
 		arrtype pArray;
@@ -40,7 +45,6 @@ namespace cpp_speech_features {
 	private:	
 		int column;
 		int row;
-		
 	};
 }
 

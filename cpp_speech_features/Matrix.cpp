@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Array.h"
+#include "Vector.h"
 #include <iostream>
 
 namespace cpp_speech_features {
@@ -28,30 +28,33 @@ namespace cpp_speech_features {
 
 	void Matrix::createZerosArray(int size)
 	{		
-		pArray = std::shared_ptr<accuracy>(new accuracy[size], [](accuracy *p) {delete[] p; });
+		pArray = create_arrayp(size, 0);
 	}
 
 	Matrix::~Matrix()
-	{
-		std::cout << "realse Matrix " << pArray << std::endl;		
+	{				
+		delete[] pArray;
 	}
 
 	accuracy Matrix::get(int x)
 	{
-		return pArray.get()[x];
+		return pArray[x];
 	}
 
 	accuracy Matrix::get(int y, int x) {
-		return pArray.get()[y * column + x];
+		return pArray[y * column + x];
 	}
 
 	void Matrix::set(int x, accuracy v)
-	{
-		pArray.get()[x] = v;
+	{		
+		pArray[x] = v;
 	}
 
 	void Matrix::set(int y, int x, accuracy v) {
-		pArray.get()[y * column + x] = v;
+		if (y >= row || x >= column) {
+			throw new std::exception("Matrix::set (y >= row || x >= column)");
+		}
+		pArray[y * column + x] = v;
 	}
 
 	int Matrix::getColumn()
@@ -69,23 +72,34 @@ namespace cpp_speech_features {
 		return pArray;
 	}
 
-	Azzay Matrix::getRow(int row)
+	Vectorp Matrix::getRow(int row)
 	{
-		Azzay narray = create_azzay(column);
+		Vectorp narray = create_verctorp(column);
 		for (int i = 0; i < column; ++i) {
 			narray->set(i, get(row, i));
 		}
 		return narray;
 	}
+
+	void Matrix::setRow(int row, Vectorp r)
+	{
+		if (r == nullptr) {
+			throw std::exception("setRow r == nullptr");
+		}
+
+		for (int i = 0; i < column; ++i) {
+			set(row, i, r->get(i));
+		}
+	}
 		
-	Matzix Matrix::multiply(Matzix b) {
+	Matrixp Matrix::multiply(Matrixp b) {
 		if (b == nullptr) {
 			throw std::exception("multiply b == nullptr");
 		}
 		if (column != b->row) {
 			throw std::exception("A's column do not match and B's row");
 		}
-		Matzix nm = create_matzix(b->column, row);
+		Matrixp nm = create_matrixp(b->column, row);
 		accuracy cellValue;
 		for (int x = 0; x < b->column; ++x) {
 			for (int y = 0; y < row; ++y) {
@@ -100,19 +114,19 @@ namespace cpp_speech_features {
 	}
 
 	
-	Matzix Matrix::multiply(accuracy b)
+	Matrixp Matrix::multiply(accuracy b)
 	{
-		Matzix nm = create_matzix(column, row);
+		Matrixp nm = create_matrixp(column, row);
 		for (int x = 0; x < column; ++x) {
 			for (int y = 0; y < row; ++y) {						
 				nm->set(y, x, get(y, x) * b);
 			}
 		}
 		return nm;
-	}
+	}	
 
 	
-	Matzix Matrix::subtract(Matzix b)
+	Matrixp Matrix::subtract(Matrixp b)
 	{
 		if (b == nullptr) {
 			throw std::exception("subtract b == nullptr");
@@ -121,7 +135,7 @@ namespace cpp_speech_features {
 			throw std::exception("A's dimension do not match and B's dimension");
 		}
 
-		Matzix nm = create_matzix(column, row);
+		Matrixp nm = create_matrixp(column, row);
 		for (int x = 0; x < column; ++x) {
 			for (int y = 0; y < row; ++y) {
 				nm->set(y, x, get(y, x) - b->get(y, x));
@@ -130,7 +144,7 @@ namespace cpp_speech_features {
 		return nm;
 	}
 
-	Matzix Matrix::add(Matzix b)
+	Matrixp Matrix::add(Matrixp b)
 	{
 		if (b == nullptr) {
 			throw std::exception("add b == nullptr");
@@ -139,7 +153,7 @@ namespace cpp_speech_features {
 			throw std::exception("A's dimension do not match and B's dimension");
 		}
 
-		Matzix nm = create_matzix(column, row);
+		Matrixp nm = create_matrixp(column, row);
 		for (int x = 0; x < column; ++x) {
 			for (int y = 0; y < row; ++y) {
 				nm->set(y, x, get(y, x) + b->get(y, x));
@@ -147,8 +161,27 @@ namespace cpp_speech_features {
 		}
 		return nm;
 	}
+
+	Matrixp Matrix::square()
+	{
+		Matrixp nm = create_matrixp(column, row);
+		for (int x = 0; x < column; ++x) {
+			for (int y = 0; y < row; ++y) {
+				nm->set(y, x, pow(get(y, x), 2));
+			}
+		}
+		return nm;		
+	}
+
+	Matrixp Matrix::logarithms()
+	{
+		return map([](int y, int x, accuracy v) ->accuracy 
+		{
+			return log(v); 
+		});
+	}
 	
-	Matzix Matrix::concatenate(Matzix b)
+	Matrixp Matrix::concatenate(Matrixp b)
 	{
 		if (b == nullptr) {
 			throw std::exception("concatenate b == nullptr");
@@ -157,7 +190,7 @@ namespace cpp_speech_features {
 			throw std::exception("the matrix must have the same row");
 		}
 		int newColumn = column + b->column;
-		Matzix nm = create_matzix(newColumn, row);
+		Matrixp nm = create_matrixp(newColumn, row);
 		for (int y = 0; y < row; ++y) {
 			for (int x = 0; x < newColumn; ++x) {
 				if (x < column) {
@@ -172,19 +205,42 @@ namespace cpp_speech_features {
 		return nm;
 	}
 
-	Matzix Matrix::reshape(int col, int row)
+	Matrixp Matrix::reshape(int row, int col)
 	{		
-		Matzix nm = create_matzix(col, row);
+		Matrixp nm = create_matrixp(col, row);
 		arrtype data = nm->getData();
 		for (int i = 0; i < col * row; ++i) {
-			set(i, nm->get(i));
+			nm->set(i, get(i));
 		}
 		return nm;
 	}
 
-	Matzix Matrix::T()
+	Matrixp Matrix::map(accuracy (*func)(int, int, accuracy))
 	{
-		Matzix nm = create_matzix(row, column);
+		Matrixp nm = create_matrixp(column, row);
+		int index = 0;
+		for (int y = 0; y < row; ++y) {
+			for (int x = 0; x < column; ++x) {
+				nm->set(y, x, func(y, x, get(index++)));
+			}
+		}
+		return nm;
+	}
+
+	Matrixp Matrix::mapRow(Vectorp(*func)(int, Vectorp r))
+	{
+		Matrixp nm = create_matrixp(column, row);
+		for (int y = 0; y < row; ++y) {
+			nm->setRow(y, func(y, getRow(y)));
+		}
+		return nm;
+	}
+
+	
+
+	Matrixp Matrix::T()
+	{
+		Matrixp nm = create_matrixp(row, column);
 		for (int x = 0; x < column; ++x) {
 			for (int y = 0; y < row; ++y) {
 				nm->set(x, y, get(y, x));
@@ -195,7 +251,7 @@ namespace cpp_speech_features {
 
 	void Matrix::print()
 	{
-		int p_char_size = column * row * 10;
+		int p_char_size = column * row * 20;
 		char * p_char = new char[p_char_size];		
 		strcpy_s(p_char, p_char_size, "");		
 		int dataIndex = 0;

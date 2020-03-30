@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Array.h"
+#include "Vector.h"
 #include <iostream>
 
 namespace cpp_speech_features {
@@ -21,10 +21,7 @@ namespace cpp_speech_features {
 		}
 		bool insertSuccessed = false;
 		for (int i = 0; i < gcmax; ++i) {
-			if (GC_pArray[i] == nullptr) {
-				if (i == 10) {
-					std::cout << i << std::endl;
-				}
+			if (GC_pArray[i] == nullptr) {				
 				GC_pArray[i] = p;
 				++survivalCount;
 				insertSuccessed = true;
@@ -37,12 +34,8 @@ namespace cpp_speech_features {
 	}
 
 	int AutoGC::releaseAllWithout(gctype * p)
-	{
-		int p_char_size = 100;
-		char * p_char = new char[p_char_size];
-		strcpy_s(p_char, p_char_size, ">>>释放内存：\n>>>释放前");
-		sprintf_s(p_char, p_char_size, "%s：%d", p_char, survivalCount);
-
+	{		
+		int before = survivalCount;
 		int releaseCount = 0;
 		int skipCount = 0;
 		for (int i = 0; i < gcmax; ++i) {
@@ -60,13 +53,22 @@ namespace cpp_speech_features {
 		}		
 		survivalCount -= releaseCount;
 		GC_Enable = false;
-		
-		sprintf_s(p_char, p_char_size, "%s, 释放后：%d", p_char, survivalCount);
-		sprintf_s(p_char, p_char_size, "%s, 本次释放：%d个对象", p_char, releaseCount);
-		std::cout << p_char << std::endl;
+		print(before, survivalCount, releaseCount);
 
 		return releaseCount;
 	}
+
+	void AutoGC::print(int beforeCount, int afterCount, int releaseCount)
+	{
+		int p_char_size = 100;
+		char * p_char = new char[p_char_size];
+		strcpy_s(p_char, p_char_size, ">>>释放内存：\n>>>释放前");
+		sprintf_s(p_char, p_char_size, "%s：%d", p_char, beforeCount);
+		sprintf_s(p_char, p_char_size, "%s, 释放后：%d", p_char, afterCount);
+		sprintf_s(p_char, p_char_size, "%s, 本次释放：%d个对象", p_char, releaseCount);
+		std::cout << p_char << std::endl;
+	}
+
 	void AutoGC::print(const char * tag)
 	{
 		int p_char_size = 500;
