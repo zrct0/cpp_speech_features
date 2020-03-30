@@ -17,6 +17,7 @@ namespace cpp_speech_features {
 	public:
 		Matrix(int col, int row);
 		Matrix(int col, int row, arrtype data);
+		Matrix(Matrixp b);
 		~Matrix();
 		accuracy get(int x);
 		accuracy get(int y, int x);		
@@ -29,16 +30,19 @@ namespace cpp_speech_features {
 		void setRow(int row, Vectorp r);
 		Matrixp multiply(Matrixp b);
 		Matrixp multiply(accuracy b);	
+		Matrixp divide(accuracy b);	
 		Matrixp subtract(Matrixp b);
 		Matrixp add(Matrixp b);
+		Matrixp add(accuracy b);
 		Matrixp square();
+		Matrixp takeRow(int r1, int r2);
 		Matrixp logarithms();
 		Matrixp concatenate(Matrixp b);
 		Matrixp T();
 		Matrixp reshape(int row, int col);			
 		Matrixp map(accuracy(*func)(int, int, accuracy));
 		Matrixp mapRow(Vectorp(*func)(int, Vectorp r));
-		void print();
+		void print(const char * tag= "");
 	protected:
 		arrtype pArray;
 		void createZerosArray(int size);

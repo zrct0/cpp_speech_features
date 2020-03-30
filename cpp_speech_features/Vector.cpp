@@ -97,11 +97,55 @@ namespace cpp_speech_features {
 			}
 		}
 		return narray;
-	}	
+	}
+	Vectorp Vector::take(int s1, int s2)
+	{
+		if (s2 > size) {
+			throw std::exception("take s2 > array size");
+		}
+		if (s1 >= s2) {
+			throw std::exception("take s1 >= s2");
+		}
+		Vectorp narray = create_verctorp(s2 - s1);
+		int index = 0;
+		for (int i = s1; i < s2; i++) {
+			narray->set(index++, get(i));
+		}
+		return narray;
+	}
+	Vectorp Vector::dot(Vectorp b)
+	{
+		if (b == nullptr) {
+			throw std::exception("Vector multiply b == nullptr");
+		}
+		if (size != b->getSize()) {
+			throw std::exception("Vector multiply a's size != b's size");
+		}
+		Vectorp narray = create_verctorp(size);
+		for (int i = 0; i < size; ++i) {
+			narray->set(i, get(i) * b->get(i));
+		}
+		return narray;
+	}
+
+	Vectorp Vector::multiply(Matrixp b)
+	{
+		return create_verctorp(Matrix::multiply(b));
+	}
 
 	Vectorp Vector::multiply(accuracy b)
 	{
 		return create_verctorp(Matrix::multiply(b));
+	}
+
+	Vectorp Vector::divide(accuracy b)
+	{
+		return create_verctorp(Matrix::divide(b));
+	}
+
+	Vectorp Vector::add(accuracy b)
+	{
+		return create_verctorp(Matrix::add(b));
 	}
 
 	Vectorp Vector::subtract(Vectorp b)
@@ -113,6 +157,20 @@ namespace cpp_speech_features {
 	Vectorp Vector::concatenate(Vectorp b)
 	{
 		return create_verctorp(Matrix::concatenate(b));
+	}
+
+	Vectorp Vector::logarithms()
+	{
+		return create_verctorp(Matrix::logarithms());
+	}
+
+	Vectorp Vector::map(accuracy(*func)(int, accuracy))
+	{
+		Vectorp narray = create_verctorp(size);
+		for (int i = 0; i < size; ++i) {
+			narray->set(i, func(i, get(i)));
+		}
+		return narray;
 	}
 
 	accuracy Vector::sum()

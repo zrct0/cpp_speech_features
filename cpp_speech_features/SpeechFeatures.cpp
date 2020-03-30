@@ -10,14 +10,43 @@ namespace cpp_speech_features {
 		Vectorp energy;
 		Matrixp feat = fbank(&energy, signal, samplerate, winlen, winstep, nfilt, nfft, lowfreq, highfreq, preemph, winfunc);
 		feat = feat->logarithms();
-		feat = feat->mapRow([](int y, Vectorp r) ->Vectorp
-		{
-			return DiscreteTransform::dctWithOrtho(r);
-		});
-		feat->print();
-		energy->print();
-		return nullptr;
+		feat = feat_dct(feat, numcep);
+		feat = lifter(feat, ceplifter);
+		if (appendEnergy) {
+			Vectorp energy_log = energy->logarithms();
+			for (int i = 0; i < feat->getRow(); i++) {
+				feat->set(i, 0, energy_log->get(i));
+			}
+		}			
+		return feat;
 	}
+
+	Matrixp SpeechFeatures::delta(Matrixp feat, int N)
+	{
+		int NUMFRAMES = feat->getRow();
+		int denominator = N == 1 ? 2 : 10;
+		Matrixp delta_feat = create_matrixp(feat);		
+		Matrixp padded = create_matrixp(feat->getColumn(), feat->getRow() + N * 2);
+		int flen = feat->getRow();
+		int j = 0;
+		for (int i = 0; i < flen;) {
+			padded->setRow(j++, feat->getRow(i));
+			if (j > N && j <= flen + N - 1) {
+				i++;
+			}
+			if (j > flen + 2 * N - 1) {
+				break;
+			}
+		}				
+		
+		for (int t = 0; t < NUMFRAMES; t++) {
+			Vectorp arg1 = Vector::arange(-N, N + 1);
+			Matrixp arg2 = padded->takeRow(t, t + 2 * N + 1);			
+			delta_feat->setRow(t, arg1->multiply(arg2));
+		}		
+		return delta_feat->divide(denominator);
+	}
+
 	Matrixp SpeechFeatures::fbank(Vectorp * energy, Vectorp signal, int samplerate, accuracy winlen, accuracy winstep, int nfilt, int nfft, int lowfreq, int highfreq, accuracy preemph, void * winfunc)
 	{
 		highfreq = highfreq == -1 ? samplerate / 2 : highfreq;		
@@ -42,6 +71,33 @@ namespace cpp_speech_features {
 			vp->set(i, sr);
 		}
 		return vp;
+	}
+
+	Matrixp SpeechFeatures::feat_dct(Matrixp feat, int numcep)
+	{
+		int column = feat->getColumn();
+		int row = feat->getRow();
+		Matrixp nm = create_matrixp(numcep, row);
+		for (int y = 0; y < row; ++y) {
+			Vectorp vp = DiscreteTransform::dctWithOrtho(feat->getRow(y), 2);
+			nm->setRow(y, vp->take(numcep));
+		}
+		return nm;
+	}
+
+	Matrixp SpeechFeatures::lifter(Matrixp cepstra, int L) {		
+		int nframes = cepstra->getRow();
+		int ncoeff = cepstra->getColumn();
+		Vectorp n = Vector::arange(0, ncoeff)->multiply(M_PI)->divide(L);		
+		Vectorp lift = n->map([](int i, accuracy v) ->accuracy {return sin(v); })->multiply(L / 2.0)->add(1);
+
+		int column = cepstra->getColumn();
+		int row = cepstra->getRow();
+		Matrixp np = create_matrixp(column, row);
+		for (int y = 0; y < row; ++y) {			
+			np->setRow(y, lift->dot((cepstra->getRow(y))));
+		}
+		return np;
 	}
 
 	Matrixp SpeechFeatures::powspec(Matrixp framesj, int NFFT) {

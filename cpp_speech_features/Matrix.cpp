@@ -26,6 +26,18 @@ namespace cpp_speech_features {
 		pArray = data;
 	}
 
+	Matrix::Matrix(Matrixp b)
+	{				
+		this->column = b->column;
+		this->row = b->row;
+		createZerosArray(column * row);		
+		arrtype data = b->getData();
+		for (int i = 0; i < column * row; ++i) {
+			set(i, b->get(i));
+		}
+		AutoGC::insert(this);
+	}
+
 	void Matrix::createZerosArray(int size)
 	{		
 		pArray = create_arrayp(size, 0);
@@ -47,6 +59,9 @@ namespace cpp_speech_features {
 
 	void Matrix::set(int x, accuracy v)
 	{		
+		if (x >= row * column) {
+			throw new std::exception("Matrix::set (x >= row * column)");
+		}
 		pArray[x] = v;
 	}
 
@@ -94,7 +109,7 @@ namespace cpp_speech_features {
 		
 	Matrixp Matrix::multiply(Matrixp b) {
 		if (b == nullptr) {
-			throw std::exception("multiply b == nullptr");
+			throw std::exception("Matrix multiply b == nullptr");
 		}
 		if (column != b->row) {
 			throw std::exception("A's column do not match and B's row");
@@ -123,7 +138,19 @@ namespace cpp_speech_features {
 			}
 		}
 		return nm;
-	}	
+	}
+
+	Matrixp Matrix::divide(accuracy b)
+	{
+		Matrixp nm = create_matrixp(column, row);
+		for (int x = 0; x < column; ++x) {
+			for (int y = 0; y < row; ++y) {
+				nm->set(y, x, get(y, x) / b);
+			}
+		}
+		return nm;
+	}
+
 
 	
 	Matrixp Matrix::subtract(Matrixp b)
@@ -162,6 +189,17 @@ namespace cpp_speech_features {
 		return nm;
 	}
 
+	Matrixp Matrix::add(accuracy b)
+	{
+		Matrixp nm = create_matrixp(column, row);
+		for (int x = 0; x < column; ++x) {
+			for (int y = 0; y < row; ++y) {
+				nm->set(y, x, get(y, x) + b);
+			}
+		}
+		return nm;
+	}
+
 	Matrixp Matrix::square()
 	{
 		Matrixp nm = create_matrixp(column, row);
@@ -172,6 +210,25 @@ namespace cpp_speech_features {
 		}
 		return nm;		
 	}
+
+	Matrixp Matrix::takeRow(int r1, int r2)
+	{
+		if (r2 > row) {
+			throw std::exception("takeRow r2 > row");
+		}
+		if (r1 >= r2) {
+			throw std::exception("takeRow r1 >= r2");
+		}
+		Matrixp nm = create_matrixp(column, r2 - r1);
+		int index = 0;
+		for (int y = r1; y < r2; ++y) {
+			for (int x = 0; x < column; ++x) {
+				nm->set(index, x, get(y, x));
+			}
+			index++;
+		}
+		return nm;
+	}	
 
 	Matrixp Matrix::logarithms()
 	{
@@ -249,11 +306,12 @@ namespace cpp_speech_features {
 		return nm;
 	}
 
-	void Matrix::print()
+	void Matrix::print(const char * tag)
 	{
-		int p_char_size = column * row * 20;
+		int p_char_size = column * row * 30;
 		char * p_char = new char[p_char_size];		
-		strcpy_s(p_char, p_char_size, "");		
+		strcpy_s(p_char, p_char_size, tag);	
+		strcat_s(p_char, p_char_size, "\n");
 		int dataIndex = 0;
 		for (int y = 0; y < row; ++y) {
 			sprintf_s(p_char, p_char_size, "%s[%5.2lf, ", p_char, get(dataIndex++));
@@ -268,7 +326,7 @@ namespace cpp_speech_features {
 			}
 			sprintf_s(p_char, p_char_size, "%s%5.2lf]\n", p_char, get(dataIndex++));
 		}
-		sprintf_s(p_char, p_char_size, "%ssize:%d x %d \n", p_char, row, column);
+		sprintf_s(p_char, p_char_size, "%ssize:%d x %d \n===============================\n", p_char, row, column);
 		std::cout << p_char;
 		delete[] p_char;
 	}

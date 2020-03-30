@@ -1,10 +1,9 @@
 #include "pch.h"
 #include "DiscreteTransform.h"
 #include "math.h"
-#define M_PI 3.14159265358979323846
 namespace cpp_speech_features {
 
-	Vectorp DiscreteTransform::dctWithOrtho(Vectorp data) {
+	Vectorp DiscreteTransform::dctWithOrtho(Vectorp data, accuracy scale) {
 		Vectorp y = create_verctorp(dct(data));		
 		int N = data->getSize();
 		accuracy f;
@@ -20,31 +19,24 @@ namespace cpp_speech_features {
 			}
 			y->set(k, y->get(k) * f);			
 		}
-		return y;
+		return y->multiply(scale);
 	}
 
 	Matrixp DiscreteTransform::dct(Matrixp data)
 	{
-		Matrixp output = create_matrixp(data->getColumn(), data->getRow());
-		accuracy ALPHA, BETA;
+		Matrixp output = create_matrixp(data->getColumn(), data->getRow());		
 		int u, v, i, j;
-		int u_size = data->getRow();
-		int v_size = data->getColumn();
+		int N = data->getRow();
+		int M = data->getColumn();		
 
-		for (u = 0; u < u_size; u++)
-		{
-			for (v = 0; v < v_size; v++)
-			{
-				ALPHA = u == 0 ? sqrt(1.0 / u_size) : sqrt(2.0 / u_size);
-				BETA  = v == 0 ? sqrt(1.0 / v_size) : sqrt(2.0 / v_size);				
-
-				accuracy tmp = 0.0;
-				for (i = 0; i < u_size; i++) {
-					for (j = 0; j < v_size; j++) {
-						tmp += data->get(i, j) * cos((2 * i + 1)*u*M_PI / (2.0 * u_size)) * cos((2 * j + 1)*v*M_PI / (2.0 * v_size));
+		for (u = 0; u < N; ++u) {
+			for (v = 0; v < M; ++v) {
+				output->set(u, v, 0);				
+				for (i = 0; i < N; i++) {
+					for (j = 0; j < M; j++) {
+						output->set(u, v, output->get(u, v) + data->get(i, j) * cos(M_PI / ((float)N)*(i + 1. / 2.)*u)*cos(M_PI / ((float)M)*(j + 1. / 2.)*v));
 					}
 				}
-				output->set(u, v, ALPHA * BETA * tmp);
 			}
 		}
 		return output;
